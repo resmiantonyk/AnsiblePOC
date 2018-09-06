@@ -1,1 +1,23 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Create Azure Deploy
+      azure_rm_deployment:
+        state: present
+        resource_group_name: AnsibleRgp
+        deployment_mode: incremental
+        template_link: "https://raw.githubusercontent.com/poojasree/microservices-demo/master/AzureDeploy.json"
+        parameters_link: "https://raw.githubusercontent.com/poojasree/microservices-demo/master/DeployParameters.json"
+      register: result
+    - name: Variable assignment
+      set_fact: output_json="{{result.stdout | from_json}}"
 
+ 
+    - name: Debug the public ip
+      debug: msg="{{output_json.properties.outputs.hostname.value}}"
+
+    - name: add host to the host file
+      add_host:
+        name: "{{output_json.properties.outputs.hostname.value}}"
+        group: new_machine 
